@@ -6,48 +6,98 @@ import json
 import yaml
 import pytchat
 from datetime import datetime
+from concurrent.futures import ProcessPoolExecutor
 
 
 def main():
     queue_dir_path = os.environ.get('QUEUE_DIR_PATH')
     comments_dir_path = os.environ.get('COMMENTS_DIR_PATH')
+    ignore_videos_file_path = os.environ.get('IGNORE_VIDEOS_FILE_PATH')
 
-    for queue_file in Path(queue_dir_path).iterdir():
-        queue = get_json(queue_file)
-        channel_id = queue['channel_id']
-        video_id = queue['video_id']
+    max_crawlers = int(os.environ.get('MAX_CRAWLERS'))
 
-        output_path = Path(comments_dir_path).joinpath(
-            f'{channel_id}/{video_id}.json')
+    with ProcessPoolExecutor(max_workers=max_crawlers) as executor:
+        try:
+            queue_files = Path(queue_dir_path).iterdir()
+            results = executor.map(execute_queue, queue_files)
+            for result in results:
+                print(f'finish queue: {result}')
 
-        current_comments = get_json(output_path)
-        current_comments = current_comments if current_comments else []
-        print(f'curent comments count: {len(current_comments)}')
+        except (KeyboardInterrupt, SystemExit) as e:
+            if executor:
+                executor.shutdown(wait=False, cancel_futures=True)
+            raise e
 
-        print(f'get video comments: {video_id}')
-        new_comments = get_comments(video_id)
+        except Exception as e:
+            raise e
 
-        total_comments = current_comments
-        current_comment_ids = [x['id'] for x in current_comments]
-        for comment in new_comments:
-            if comment['id'] not in current_comment_ids:
-                total_comments.append(comment)
-        print(
-            f'add comments count: {len(total_comments) - len(current_comments)}')
-        print(f'upload video comments: {video_id}')
-        save_json(output_path, total_comments)
+
+def execute_queue(queue_file):
+    print(f'start queue: {queue_file}')
+    comments_dir_path = os.environ.get('COMMENTS_DIR_PATH')
+
+    queue = get_json(queue_file)
+    channel_id = queue['channel_id']
+    video_id = queue['video_id']
+
+    output_path = Path(comments_dir_path).joinpath(
+        f'{channel_id}/{video_id}.json')
+    current_comments = get_json(output_path)
+    current_comments = current_comments if current_comments else []
+    print(f'curent comments count: {len(current_comments)}')
+
+    print(f'get video comments: {video_id}')
+    new_comments = get_comments(video_id)
+
+    # new_commentsがNoneの場合、取得エラーのためスキップ
+    if new_comments is None:
         queue_file.unlink(missing_ok=True)
+        return queue_file
+
+    total_comments = current_comments
+    current_comment_ids = [x['id'] for x in current_comments]
+    for comment in new_comments:
+        if comment['id'] not in current_comment_ids:
+            total_comments.append(comment)
+    print(
+        f'add comments count: {len(total_comments) - len(current_comments)}')
+    print(f'upload video comments: {video_id}')
+    save_json(output_path, total_comments)
+    queue_file.unlink(missing_ok=True)
+
+    return queue_file
 
 
-# 時間切れの場合は、"continuation"も返す
 def get_comments(video_id):
+    ignore_videos_file_path = os.environ.get('IGNORE_VIDEOS_FILE_PATH')
+
     video_comments = []
     chat = pytchat.create(video_id=video_id)
     while chat.is_alive():
         comments = json.loads(chat.get().json())
         video_comments.extend(comments)
-        print(f'get comments count: {len(comments)}')
-    print(f'total new comments count: {len(video_comments)}')
+        print(f'{video_id} get comments count: {len(comments)}')
+
+    try:
+        chat.raise_for_status()
+    except pytchat.ChatDataFinished:
+        print("chat data finished")
+    except Exception as e:
+        print(f'{type(e).__name__}: {str(e)}')
+        ignore_videos = get_json(ignore_videos_file_path)
+        ignore_videos = ignore_videos if ignore_videos else []
+
+        if video_id not in [x['video_id'] for x in ignore_videos]:
+            print(f'add ignore videos list: {video_id}')
+            data = {
+                'video_id': video_id,
+                'ignore_reason': f'{type(e).__name__}: {str(e)}'
+            }
+            ignore_videos.append(data)
+            save_json(ignore_videos_file_path, ignore_videos)
+        return None
+
+    print(f'{video_id} total new comments count: {len(video_comments)}')
 
     return video_comments
 
