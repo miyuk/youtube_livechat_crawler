@@ -1,3 +1,4 @@
 PyYAML==5.3.1
 google-api-python-client==1.12.8
 pytchat==0.5.1
+elasticsearch==7.10.1

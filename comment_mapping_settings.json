@@ -1,0 +1,139 @@
+{
+    "settings": {
+        "index": {
+            "analysis": {
+                "tokenizer": {
+                    "sudachi_tokenizer": {
+                        "type": "sudachi_tokenizer",
+                        "discard_punctuation": true,
+                        "resources_path": "/etc/elasticsearch/sudachi",
+                        "additional_settings": "{\"systemDict\":\"system_full.dic\",\"userDict\":[]}"
+                    }
+                },
+                "analyzer": {
+                    "sudachi_analyzer": {
+                        "filter": [],
+                        "tokenizer": "sudachi_tokenizer",
+                        "type": "custom"
+                    }
+                }
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "amountString": {
+                "type": "text"
+            },
+            "amountValue": {
+                "type": "float"
+            },
+            "author": {
+                "properties": {
+                    "badgeUrl": {
+                        "type": "keyword"
+                    },
+                    "channelId": {
+                        "type": "keyword"
+                    },
+                    "channelUrl": {
+                        "type": "keyword"
+                    },
+                    "imageUrl": {
+                        "type": "keyword"
+                    },
+                    "isChatModerator": {
+                        "type": "boolean"
+                    },
+                    "isChatOwner": {
+                        "type": "boolean"
+                    },
+                    "isChatSponsor": {
+                        "type": "boolean"
+                    },
+                    "isVerified": {
+                        "type": "boolean"
+                    },
+                    "name": {
+                        "type": "text"
+                    },
+                    "type": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "bgColor": {
+                "type": "long"
+            },
+            "colors": {
+                "properties": {
+                    "headerBackgroundColor": {
+                        "type": "long"
+                    },
+                    "headerTextColor": {
+                        "type": "long"
+                    },
+                    "bodyBackgroundColor": {
+                        "type": "long"
+                    },
+                    "bodyTextColor": {
+                        "type": "long"
+                    },
+                    "timestampColor": {
+                        "type": "long"
+                    },
+                    "authorNameTextColor": {
+                        "type": "long"
+                    }
+                }
+            },
+            "channel_id": {
+                "type": "keyword"
+            },
+            "channel_title": {
+                "type": "text"
+            },
+            "currency": {
+                "type": "keyword"
+            },
+            "datetime": {
+                "type": "date",
+                "format": "yyyy-MM-dd HH:mm:ss"
+            },
+            "duration": {
+                "type": "text"
+            },
+            "elapsedTime": {
+                "type": "text"
+            },
+            "id": {
+                "type": "keyword"
+            },
+            "message": {
+                "type": "text",
+                "analyzer": "sudachi_analyzer",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "published_at": {
+                "type": "date"
+            },
+            "timestamp": {
+                "type": "date",
+                "format": "epoch_millis"
+            },
+            "type": {
+                "type": "keyword"
+            },
+            "video_id": {
+                "type": "keyword"
+            },
+            "video_title": {
+                "type": "text"
+            }
+        }
+    }
+}
