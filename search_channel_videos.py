@@ -18,7 +18,7 @@ def main():
 
     for channel in channels:
         channel_name = channel['name']
-        channel_id = channel['channel_id']
+        channel_id = channel['channelId']
         output_path = f'{videos_dir_path}/{channel_id}.json'
         channel_videos = get_json(output_path)
         channel_videos = channel_videos if channel_videos else []
@@ -27,9 +27,9 @@ def main():
         # ファイルがない場合は、すべて取得
         latest_published_at = None
         if channel_videos:
-            latest_video = max(channel_videos, key=lambda x: x['published_at'])
+            latest_video = max(channel_videos, key=lambda x: x['publishedAt'])
             latest_published_at = datetime.strptime(
-                latest_video['published_at'], '%Y-%m-%dT%H:%M:%SZ')
+                latest_video['publishedAt'], '%Y-%m-%dT%H:%M:%SZ')
 
         print(f'current video count: {len(channel_videos)}')
         print(
@@ -39,8 +39,8 @@ def main():
 
         channel_videos.extend(new_videos)
         channel_videos = list(
-            {x['video_id']: x for x in channel_videos}.values())
-        channel_videos.sort(key=lambda x: x['published_at'])
+            {x['videoId']: x for x in channel_videos}.values())
+        channel_videos.sort(key=lambda x: x['publishedAt'])
         print(f'total video count: {len(channel_videos)}')
 
         if len(new_videos) > 0:
@@ -91,15 +91,15 @@ def get_videos(channel_id, api_key, after=None):
                     continue
 
                 video_item = {}
-                video_item['video_id'] = search_item['id']['videoId']
-                video_item['channel_id'] = search_item['snippet']['channelId']
-                video_item['channel_title'] = search_item['snippet']['channelTitle']
-                video_item['video_title'] = search_item['snippet']['title']
-                video_item['published_at'] = search_item['snippet']['publishedAt']
+                video_item['videoId'] = search_item['id']['videoId']
+                video_item['channelId'] = search_item['snippet']['channelId']
+                video_item['channelTitle'] = search_item['snippet']['channelTitle']
+                video_item['videoTitle'] = search_item['snippet']['title']
+                video_item['publishedAt'] = search_item['snippet']['publishedAt']
 
                 video_details_result = youtube.videos().list(
                     part='contentDetails',
-                    id=video_item['video_id']
+                    id=video_item['videoId']
                 ).execute()
 
                 video_details_item = video_details_result.get('items', [])[0]

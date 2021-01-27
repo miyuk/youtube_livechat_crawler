@@ -16,7 +16,7 @@ def main():
         channel_id = videos_file.stem
 
         ignore_videos = get_json(ignore_videos_file_path)
-        ignore_video_ids = [x['video_id']
+        ignore_video_ids = [x['videoId']
                             for x in ignore_videos] if ignore_videos else []
 
         channel_videos = get_json(videos_file)
@@ -32,8 +32,8 @@ def main():
         print(f'already checked videos: {len(already_completed_video_ids)}')
 
         for video in channel_videos:
-            video_id = video['video_id']
-            print(f'check video_id: {video_id}')
+            video_id = video['videoId']
+            print(f'check videoId: {video_id}')
             if video_id in already_completed_video_ids:
                 print(f'already completed video: {video_id}')
                 continue
@@ -46,8 +46,8 @@ def main():
             if not queue_path.exists():
                 print(f'add video crawl queue: {video_id}')
                 message = {
-                    'channel_id': channel_id,
-                    'video_id': video_id
+                    'channelId': channel_id,
+                    'videoId': video_id
                 }
                 save_json(queue_path, message)
             else:

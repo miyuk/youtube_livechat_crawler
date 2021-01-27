@@ -6,6 +6,7 @@ import json
 import yaml
 from elasticsearch import Elasticsearch
 from datetime import datetime
+import re
 
 
 def main():
@@ -20,10 +21,19 @@ def main():
     comment_mapping_settings = get_json(es_comment_settings_path)
 
     version = datetime.now().strftime('%Y%m%d%H%M%S')
+    index_with_version = f'{es_comment_index}_{version}'
     es = Elasticsearch(es_host, port=es_port)
-    if not es.indices.exists(index=f'{es_comment_index}_{version}'):
-        es.indices.create(index=f'{es_comment_index}_{version}',
+    if not es.indices.exists(index=index_with_version):
+        es.indices.create(index=index_with_version,
                           body=comment_mapping_settings)
+
+    if es.indices.exists_alias(es_comment_index):
+        alias_indicies = es.indices.get_alias(es_comment_index)
+
+        for index in alias_indicies:
+            es.indices.delete_alias(index=index, name=es_comment_index)
+
+        es.indices.put_alias(index=index_with_version, name=es_comment_index)
 
     for channel_dir in Path(comments_dir_path).iterdir():
         channel_id = channel_dir.name
@@ -34,7 +44,7 @@ def main():
             video_id = comments_file.stem
             print(f'upload video: {video_id}')
             comments = get_json(comments_file)
-            video_info = [x for x in videos if x['video_id'] == video_id]
+            video_info = [x for x in videos if x['videoId'] == video_id]
             video_info = video_info[0] if video_info else None
 
             if not video_info:
@@ -42,17 +52,21 @@ def main():
                 break
 
             for i, comment in enumerate(comments):
-                comment['video_id'] = video_info['video_id']
-                comment['video_title'] = video_info['video_title']
-                comment['channel_id'] = video_info['channel_id']
-                comment['channel_title'] = video_info['channel_title']
-                comment['published_at'] = video_info['published_at']
+                comment['videoId'] = video_info['videoId']
+                comment['videoTitle'] = video_info['videoTitle']
+                comment['channelId'] = video_info['channelId']
+                comment['channelTitle'] = video_info['channelTitle']
+                comment['publishedAt'] = video_info['publishedAt']
                 comment['duration'] = video_info['duration']
+                comment['message'] = re.sub(r':[^:]+:', '', comment['message'])
+                comment['message'] = re.sub(
+                    u'[^\U00000000-\U0000d7ff\U0000e000-\U0000ffff]', '', comment['message'], flags=re.UNICODE)
+                comment['message'] = re.sub(r'□', '', comment['message'])
                 del comment['messageEx']
                 print(
                     f'upload({i + 1}/{len(comments)}): [{video_id}]{comment["id"]}')
-                es.index(index=f'{es_comment_index}_{version}',
-                         id=comment['id'], body=comment)
+                es.create(index=index_with_version,
+                          id=comment['id'], body=comment)
 
 
 def get_json(json_path):

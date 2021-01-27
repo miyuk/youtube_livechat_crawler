@@ -37,8 +37,8 @@ def execute_queue(queue_file):
     comments_dir_path = os.environ.get('COMMENTS_DIR_PATH')
 
     queue = get_json(queue_file)
-    channel_id = queue['channel_id']
-    video_id = queue['video_id']
+    channel_id = queue['channelId']
+    video_id = queue['videoId']
 
     output_path = Path(comments_dir_path).joinpath(
         f'{channel_id}/{video_id}.json')
@@ -72,7 +72,7 @@ def get_comments(video_id):
     ignore_videos_file_path = os.environ.get('IGNORE_VIDEOS_FILE_PATH')
 
     video_comments = []
-    chat = pytchat.create(video_id=video_id)
+    chat = pytchat.create(video_id=video_id, force_replay=True)
     while chat.is_alive():
         comments = json.loads(chat.get().json())
         video_comments.extend(comments)
@@ -87,11 +87,11 @@ def get_comments(video_id):
         ignore_videos = get_json(ignore_videos_file_path)
         ignore_videos = ignore_videos if ignore_videos else []
 
-        if video_id not in [x['video_id'] for x in ignore_videos]:
+        if video_id not in [x['videoId'] for x in ignore_videos]:
             print(f'add ignore videos list: {video_id}')
             data = {
-                'video_id': video_id,
-                'ignore_reason': f'{type(e).__name__}: {str(e)}'
+                'videoId': video_id,
+                'ignoreReason': f'{type(e).__name__}: {str(e)}'
             }
             ignore_videos.append(data)
             save_json(ignore_videos_file_path, ignore_videos)

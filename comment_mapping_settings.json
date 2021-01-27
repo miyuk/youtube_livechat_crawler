@@ -7,12 +7,16 @@
                         "type": "sudachi_tokenizer",
                         "discard_punctuation": true,
                         "resources_path": "/etc/elasticsearch/sudachi",
+                        "settings_path": "/etc/elasticsearch/sudachi/sudachi.json",
                         "additional_settings": "{\"systemDict\":\"system_full.dic\",\"userDict\":[]}"
                     }
                 },
                 "analyzer": {
                     "sudachi_analyzer": {
-                        "filter": [],
+                        "filter": [
+                            "sudachi_part_of_speech",
+                            "sudachi_ja_stop"
+                        ],
                         "tokenizer": "sudachi_tokenizer",
                         "type": "custom"
                     }
@@ -87,10 +91,10 @@
                     }
                 }
             },
-            "channel_id": {
+            "channelId": {
                 "type": "keyword"
             },
-            "channel_title": {
+            "channelTitle": {
                 "type": "text"
             },
             "currency": {
@@ -118,7 +122,7 @@
                     }
                 }
             },
-            "published_at": {
+            "publishedAt": {
                 "type": "date"
             },
             "timestamp": {
@@ -128,10 +132,10 @@
             "type": {
                 "type": "keyword"
             },
-            "video_id": {
+            "videoId": {
                 "type": "keyword"
             },
-            "video_title": {
+            "videoTitle": {
                 "type": "text"
             }
         }
