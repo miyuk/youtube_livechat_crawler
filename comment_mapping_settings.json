@@ -27,7 +27,7 @@
     "mappings": {
         "properties": {
             "amountString": {
-                "type": "text"
+                "type": "keyword"
             },
             "amountValue": {
                 "type": "float"
@@ -59,7 +59,7 @@
                         "type": "boolean"
                     },
                     "name": {
-                        "type": "text"
+                        "type": "keyword"
                     },
                     "type": {
                         "type": "keyword"
@@ -95,20 +95,19 @@
                 "type": "keyword"
             },
             "channelTitle": {
-                "type": "text"
+                "type": "keyword"
             },
             "currency": {
                 "type": "keyword"
             },
             "datetime": {
-                "type": "date",
-                "format": "yyyy-MM-dd HH:mm:ss"
+                "type": "keyword"
             },
             "duration": {
-                "type": "text"
+                "type": "keyword"
             },
             "elapsedTime": {
-                "type": "text"
+                "type": "keyword"
             },
             "id": {
                 "type": "keyword"
@@ -136,7 +135,7 @@
                 "type": "keyword"
             },
             "videoTitle": {
-                "type": "text"
+                "type": "keyword"
             }
         }
     }
